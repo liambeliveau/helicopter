@@ -1,17 +1,17 @@
 import random, pygame, sys
 from pygame.locals import *
-from math import sin
+from math import sin, cos
 
 WINDOW_WIDTH=1024
 WINDOW_HEIGHT=768
 gameState={}
 screen=pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 HELI_SIZE=50
-VERT_ACCEL=0.3
-HORIZ_SPEED=9
 TUNNEL_WIDTH=300
-TUNNEL_COLOR=(200,0,200)
+TUNNEL_COLOR=(50,0,50)
 HELI_OFFSET=100
+FPS=30
+
 
 def reset():
     global gameState
@@ -19,16 +19,21 @@ def reset():
         "distance":0,
         "height": WINDOW_HEIGHT / 2,
         "vertSpeed":0,
-        "gameOver":False
+        "gameOver":False,
+        "horizSpeed":4,
+        "vertAccel":0.3
     }
 
 def main():
     reset()
     pygame.init()
-    global font
-    global gameOverFont
+    pygame.mixer.init()
+    global FPSClock, font, gameOverFont, flySound, deathSound
+    FPSClock=pygame.time.Clock()
     font=pygame.font.Font('font.ttf',20)
     gameOverFont=pygame.font.Font('font.ttf',40)
+    flySound=pygame.mixer.Sound("fwip.wav")
+    deathSound=pygame.mixer.Sound("boom.wav")
     pygame.display.set_caption("Helicopter")
     runGame()
 
@@ -51,14 +56,19 @@ def update():
     if not gameState["gameOver"]:
         keyState=pygame.key.get_pressed()
         if keyState[K_SPACE]==True:
-            gameState["vertSpeed"]-=VERT_ACCEL
+            gameState["vertSpeed"]-=gameState["vertAccel"]
+            if not pygame.mixer.get_busy():
+                flySound.play()
         else:
-            gameState["vertSpeed"]+=VERT_ACCEL
+            gameState["vertSpeed"]+=gameState["vertAccel"]
         gameState["height"]+=gameState["vertSpeed"]
-        gameState["distance"]+=HORIZ_SPEED
+        gameState["distance"]+=gameState["horizSpeed"]
         if getCollision():
+            deathSound.play()
             gameState["gameOver"]=True
-
+        gameState["horizSpeed"]+=0.01
+        gameState["vertAccel"]+=0.0001
+    FPSClock.tick(FPS)
     return True
 
 def draw():
@@ -83,7 +93,7 @@ def draw():
 def getBarriers(distance):
     """returns position of ceiling and floor for given distance"""
     #fit tunnel to curve
-    ceil = 190*sin(distance/300.0)+200
+    ceil = (190*sin(distance/300.0)*(cos(distance/1000.0))+200)
     return ceil, ceil+TUNNEL_WIDTH
 
 def getCollision():
