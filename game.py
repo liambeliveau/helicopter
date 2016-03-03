@@ -7,11 +7,12 @@ WINDOW_HEIGHT=768
 gameState={}
 screen=pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 HELI_SIZE=50
+HELI_COLOR=(0,0,250)
 TUNNEL_WIDTH=300
 TUNNEL_COLOR=(50,0,50)
+TUNNEL_COLOR_2=(70,0,70)
 HELI_OFFSET=100
 FPS=30
-
 
 def reset():
     global gameState
@@ -77,12 +78,18 @@ def draw():
     for position in range(WINDOW_WIDTH/5):
         position*=5
         ceil,floor=getBarriers(position+gameState["distance"])
-        #draw ceiling
-        pygame.draw.rect(screen, TUNNEL_COLOR, (position, 0, 5, ceil))
-        #draw floor
-        pygame.draw.rect(screen, TUNNEL_COLOR, (position, floor, 5, WINDOW_HEIGHT-floor))
+        if position%2.0==0: #every other rect
+            #draw ceiling
+            pygame.draw.rect(screen, TUNNEL_COLOR, (position, 0, 5, ceil))
+            #draw floor
+            pygame.draw.rect(screen, TUNNEL_COLOR, (position, floor, 5, WINDOW_HEIGHT-floor))
+        else:
+            #draw ceiling (color 2)
+            pygame.draw.rect(screen, TUNNEL_COLOR_2, (position, 0, 5, ceil))
+            #draw floor (color 2
+            pygame.draw.rect(screen, TUNNEL_COLOR_2, (position, floor, 5, WINDOW_HEIGHT-floor))
     #draw helicopter
-    pygame.draw.rect(screen, (0,0,250), (HELI_OFFSET, gameState["height"] - HELI_SIZE / 2, HELI_SIZE, HELI_SIZE))
+    pygame.draw.rect(screen, HELI_COLOR, (HELI_OFFSET, gameState["height"] - HELI_SIZE / 2, HELI_SIZE, HELI_SIZE))
     score=font.render('Distance: '+str(gameState["distance"]), True, (200,200,200))
     screen.blit(score, (0,0))
     if gameState["gameOver"]:
